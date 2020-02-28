@@ -6,3 +6,45 @@
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
+
+<!-- The library used for QR code scanning was taken from https://github.com/cozmo/jsQR
+    and modified to meet our requirements-->
+<script src="./jsQR.js"></script>
+<body>
+    <canvas id="canvas" hidden></canvas>
+    <div id="output" hidden>
+        <div><b>Data:</b> <span id="outputData"></span></div>
+    </div>
+    <script>
+        var video = document.createElement("video");
+        var canvasElement = document.getElementById("canvas");
+        var canvas = canvasElement.getContext("2d");
+        var outputContainer = document.getElementById("output");
+        var outputData = document.getElementById("outputData");
+
+        // Use facingMode: environment to attempt to get the front camera on phones
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function (stream) {
+            video.srcObject = stream;
+            video.play();
+            requestAnimationFrame(tick);
+        });
+
+        function tick() {
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvasElement.hidden = false;
+                outputContainer.hidden = false;
+                canvasElement.height = video.videoHeight;
+                canvasElement.width = video.videoWidth;
+                canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                var code = jsQR(imageData.data, imageData.width, imageData.height, 0);
+                if (code) {
+                    outputData.parentElement.hidden = false;
+                    outputData.innerText = code.data;
+                    $.post("/Home/PostQRCode", "data=" + outputData.innerText);
+                }
+            }
+            requestAnimationFrame(tick);
+        }
+    </script>
+</body>

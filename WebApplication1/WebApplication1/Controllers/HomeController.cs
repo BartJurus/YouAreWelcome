@@ -24,6 +24,12 @@ namespace WebApplication1.Controllers
             return View();
         }
 
+        public IActionResult PostQRCode(string data)
+        {
+            Debug.WriteLine(data);
+            return View();
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
